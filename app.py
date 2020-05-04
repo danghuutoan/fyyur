@@ -29,10 +29,23 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
-# shows = db.Table('show',
-#                  db.Column('artist_id', db.Integer, db.ForeignKey(
-#                      'artist.id'), primary_key=True),
-#                  db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True))
+
+
+class City(db.Model):
+    __tablename__ = 'city'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    states = db.relationship('State', backref=db.backref('city'))
+
+
+class State(db.Model):
+    __tablename__ = 'state'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    city_id = db.Column(db.Integer, db.ForeignKey('city.id'))
+    venues = db.relationship('Venue', backref=db.backref('state'))
+    artists = db.relationship('Artist', backref=db.backref('state'))
+
 
 artist_genres = db.Table('artist_genre',
                          db.Column('artist_id', db.Integer, db.ForeignKey(
@@ -69,8 +82,7 @@ class Venue(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    state_id = db.Column(db.Integer, db.ForeignKey('state.id'))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
@@ -90,8 +102,7 @@ class Artist(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    state_id = db.Column(db.Integer, db.ForeignKey('state.id'))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
@@ -136,54 +147,16 @@ def index():
 
 @app.route('/venues')
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
+    states = State.query.all()
+    app.logger.info(states)
+    data = []
+    for state in states:
+        data.append({
+            "city": state.city.name,
+            "state": state.name,
+            "venues": state.venues
+        })
 
-    venues = Venue.query.all()
-    app.logger.info(venues)
-
-    # data = [{
-    #     "city": "San Francisco",
-    #     "state": "CA",
-    #     "venues": [{
-    #         "id": 1,
-    #             "name": "The Musical Hop",
-    #             "num_upcoming_shows": 0,
-    #     }, {
-    #         "id": 3,
-    #         "name": "Park Square Live Music & Coffee",
-    #         "num_upcoming_shows": 1,
-    #     }]
-    # }, {
-    #     "city": "New York",
-    #     "state": "NY",
-    #     "venues": [{
-    #         "id": 2,
-    #         "name": "The Dueling Pianos Bar",
-    #         "num_upcoming_shows": 0,
-    #     }]
-    # }]
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-                "name": "The Musical Hop",
-                "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
     return render_template('pages/venues.html', areas=data)
 
 
@@ -213,6 +186,8 @@ def show_venue(venue_id):
     past_shows = venue.shows.filter(Show.start_time < datetime_now).all()
     past_shows_count = len(past_shows)
     data = {**venue.__dict__,
+            "city": venue.state.city.name,
+            "state": venue.state.name,
             "upcoming_shows": upcoming_shows,
             "upcoming_shows_count": upcoming_shows_count,
             "past_shows": past_shows,
@@ -257,17 +232,7 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 @app.route('/artists')
 def artists():
-    # TODO: replace with real data returned from querying the database
-    # data = [{
-    #     "id": 1,
-    #     "name": "Guns N Petals",
-    # }, {
-    #     "id": 2,
-    #     "name": "Matt Quevedo",
-    # }, {
-    #     "id": 3,
-    #     "name": "The Wild Sax Band",
-    # }]
+
     return render_template('pages/artists.html', artists=Artist.query.all())
 
 
@@ -299,6 +264,9 @@ def show_artist(artist_id):
 
     data = {
         **artist.__dict__,
+        "genres": artist.genres,
+        "city": artist.state.city.name,
+        "state": artist.state.name,
         "past_shows": past_shows,
         "upcoming_shows": upcoming_shows,
         "past_shows_count": past_shows_count,

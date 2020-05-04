@@ -65,7 +65,7 @@ endblock %} {% block content %}
 				<img src="{{ show.venue.image_link }}" alt="Show Venue Image" />
 				<h5>
 					<a href="/venues/{{ show.venue_id }}"
-						>{{ show.venue_name }}</a
+						>{{ show.venue.name }}</a
 					>
 				</h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
@@ -86,7 +86,7 @@ endblock %} {% block content %}
 				<img src="{{ show.venue.image_link }}" alt="Show Venue Image" />
 				<h5>
 					<a href="/venues/{{ show.venue_id }}"
-						>{{ show.venue_name }}</a
+						>{{ show.venue.name }}</a
 					>
 				</h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
