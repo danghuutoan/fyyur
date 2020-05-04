@@ -34,6 +34,19 @@ migrate = Migrate(app, db)
 #                      'artist.id'), primary_key=True),
 #                  db.Column('venue_id', db.Integer, db.ForeignKey('venue.id'), primary_key=True))
 
+artist_genres = db.Table('artist_genre',
+                         db.Column('artist_id', db.Integer, db.ForeignKey(
+                             'artist.id'), primary_key=True),
+                         db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True))
+
+
+class Genre(db.Model):
+    __tablename__ = 'genre'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    artists = db.relationship(
+        'Artist', secondary=artist_genres, backref=db.backref('genres', lazy='dynamic'))
+
 
 class Show(db.Model):
     __tablename__ = 'show'
@@ -76,7 +89,7 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.String(120)))
+    # genres = db.Column(db.ARRAY(db.String(120)))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
@@ -121,13 +134,38 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #       num_shows should be aggregated based on number of upcoming shows per venue.
+
+    venues = Venue.query.all()
+    app.logger.info(venues)
+
+    # data = [{
+    #     "city": "San Francisco",
+    #     "state": "CA",
+    #     "venues": [{
+    #         "id": 1,
+    #             "name": "The Musical Hop",
+    #             "num_upcoming_shows": 0,
+    #     }, {
+    #         "id": 3,
+    #         "name": "Park Square Live Music & Coffee",
+    #         "num_upcoming_shows": 1,
+    #     }]
+    # }, {
+    #     "city": "New York",
+    #     "state": "NY",
+    #     "venues": [{
+    #         "id": 2,
+    #         "name": "The Dueling Pianos Bar",
+    #         "num_upcoming_shows": 0,
+    #     }]
+    # }]
     data = [{
         "city": "San Francisco",
         "state": "CA",
         "venues": [{
             "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
+                "name": "The Musical Hop",
+                "num_upcoming_shows": 0,
         }, {
             "id": 3,
             "name": "Park Square Live Music & Coffee",
@@ -338,7 +376,7 @@ def show_artist(artist_id):
     data = {
         "id": artist.id,
         "name": artist.name,
-        "genres": artist.genres,
+        "genres": artist.genres.all(),
         "city": artist.city,
         "state": artist.state,
         "phone": artist.phone,
