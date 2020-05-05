@@ -69,8 +69,7 @@ class Show(db.Model):
     venue_id = db.Column('venue_id', db.Integer,
                          db.ForeignKey('venue.id'))
     start_time = db.Column(db.DateTime(timezone=True))
-    # venue = db.relationship("Venue", back_populates="shows")
-    # artist = db.relationship('Artist', back_populates="shows")
+
     venue = db.relationship(
         "Venue", backref=db.backref("shows", lazy='dynamic'))
     artist = db.relationship(
@@ -91,10 +90,6 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(120))
     genres = db.Column(db.ARRAY(db.String(120)))
-    # shows = db.relationship("Show", back_populates="venue")
-    # artists = db.relationship(
-    # 'Artist', secondary=shows, backref=db.backref('venues', lazy=True))
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
 class Artist(db.Model):
@@ -108,9 +103,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String(500))
-    # shows = db.relationship("Show", back_populates="artist")
     website = db.Column(db.String(500))
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
