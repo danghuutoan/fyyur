@@ -27,6 +27,19 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
+class Show(db.Model):
+  __tablename__ = 'Show'
+  id = db.Column(db.Integer, primary_key=True)
+  artist_id = db.Column('artist_id', db.Integer,
+                        db.ForeignKey('Artist.id'))
+  venue_id = db.Column('venue_id', db.Integer,
+                        db.ForeignKey('Venue.id'))
+  start_time = db.Column(db.String(120))
+
+  venue = db.relationship(
+      "Venue", backref=db.backref("shows", lazy='dynamic'))
+  artist = db.relationship(
+      'Artist', backref=db.backref("shows", lazy='dynamic'))
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
