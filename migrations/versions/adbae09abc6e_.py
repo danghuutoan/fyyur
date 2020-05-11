@@ -21,8 +21,8 @@ def upgrade():
     venue_genres = op.create_table('venue_genres',
     sa.Column('genre_id', sa.Integer(), nullable=True),
     sa.Column('venue_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['genre_id'], ['Genre.id'], ),
-    sa.ForeignKeyConstraint(['venue_id'], ['Venue.id'], )
+    sa.ForeignKeyConstraint(['genre_id'], ['genre.id'], ),
+    sa.ForeignKeyConstraint(['venue_id'], ['venue.id'], )
     )
 
     op.bulk_insert(
