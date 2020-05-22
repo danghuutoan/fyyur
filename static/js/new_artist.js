@@ -1,10 +1,5 @@
-// var form = document.querySelector("form");
-// form.addEventListener("change", function () {
-// 	alert("Hi!");
-// });
-
-handle_update = (artist_id) => {
-	console.log(artist_id);
+document.getElementById("new-artist-form").onsubmit = function (e) {
+	e.preventDefault();
 	const genres = document.getElementById("genres");
 	let genres_list = [];
 	for (let i = 0; i < genres.selectedOptions.length; i++) {
@@ -19,11 +14,10 @@ handle_update = (artist_id) => {
 
 	const phone = document.getElementById("phone");
 	const facebook_link = document.getElementById("facebook_link");
-	console.log(genres);
-	fetch("/artists/" + artist_id + "/edit", {
+
+	fetch("/artists/create", {
 		method: "POST",
 		body: JSON.stringify({
-			id: artist_id,
 			name: name.value,
 			genres: genres_list,
 			city: city.value,
@@ -35,6 +29,7 @@ handle_update = (artist_id) => {
 			"Content-Type": "application/json",
 		},
 	}).then((response) => {
-		window.location.replace("/artists/" + artist_id);
+		console.log(response);
+		window.location.replace("/");
 	});
 };

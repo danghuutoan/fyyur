@@ -10,7 +10,7 @@ block content %}
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
-			<span class="genre">{{ genre.name }}</span>
+			<span class="genre">{{ genre }}</span>
 			{% endfor %}
 		</div>
 		<p>
@@ -67,12 +67,12 @@ block content %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img
-					src="{{ show.artist.image_link }}"
+					src="{{ show.artist_image_link }}"
 					alt="Show Artist Image"
 				/>
 				<h5>
-					<a href="/artists/{{ show.artist.id }}"
-						>{{ show.artist.name }}</a
+					<a href="/artists/{{ show.artist_id }}"
+						>{{ show.artist_name }}</a
 					>
 				</h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
@@ -91,12 +91,12 @@ block content %}
 		<div class="col-sm-4">
 			<div class="tile tile-show">
 				<img
-					src="{{ show.artist.image_link }}"
+					src="{{ show.artist_image_link }}"
 					alt="Show Artist Image"
 				/>
 				<h5>
-					<a href="/artists/{{ show.artist.id }}"
-						>{{ show.artist.name }}</a
+					<a href="/artists/{{ show.artist_id }}"
+						>{{ show.artist_name }}</a
 					>
 				</h5>
 				<h6>{{ show.start_time|datetime('full') }}</h6>
