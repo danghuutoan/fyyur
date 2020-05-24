@@ -1,5 +1,11 @@
 from startup.app import app
 from models.city import City
+from models.venue import Venue
+from models.genre import Genre
+from datetime import datetime
+from forms import VenueForm
+from startup.db import db
+import sys
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 #  Venues
 #  ----------------------------------------------------------------
@@ -79,7 +85,7 @@ def show_venue(venue_id):
         "upcoming_shows": upcoming_shows,
         "upcoming_shows_count": len(upcoming_shows)
     }
-    app.logger.info(data)
+    # app.logger.info(data)
     return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -89,20 +95,55 @@ def show_venue(venue_id):
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
     form = VenueForm()
-    return render_template('forms/new_venue.html', form=form)
+    return render_template('forms/update_venue.html', form=form)
 
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    # TODO: insert form data as a new Venue record in the db, instead
-    # TODO: modify data to be the data object returned from db insertion
+    error = False
+    venue_name = request.get_json()['name']
+    try:
+        # app.logger.info(request.get_json())
+        body = {}
+        venue = Venue(name=venue_name)
+        city_name = request.get_json()['city']
+        state_id = request.get_json()['state']
+        genres = request.get_json()['genres']
+        city = City.query.filter(City.name == city_name).first()
 
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-    # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-    return render_template('pages/home.html')
+        if city == None:
+            city = City(name=city_name)
+            city.state_id = state_id
+            db.session.add(city)
+            db.session.commit()
+
+        venue.city_id = city.id
+        venue.phone = request.get_json()['phone']
+        venue.facebook_link = request.get_json()['facebook_link']
+
+        for genre_id in genres:
+            genre = Genre.query.get(genre_id)
+            venue.genres.append(genre)
+        db.session.add(venue)
+        db.session.commit()
+        body['id'] = venue.id
+        body['name'] = venue.name
+
+    except:
+        print("Oops!", sys.exc_info(), "occured.")
+        error = True
+        db.session.rollback()
+
+    finally:
+        db.session.close()
+
+    if error:
+        flash('venue ' + venue_name + ' could not be listed.')
+        abort(400)
+    else:
+        flash('venue ' + venue_name + ' was successfully listed!')
+
+    return jsonify(body)
 
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
@@ -117,27 +158,81 @@ def delete_venue(venue_id):
 
 @ app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-    form = VenueForm()
-    venue = {
-        "id": 1,
-        "name": "The Musical Hop",
-        "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-        "address": "1015 Folsom Street",
-        "city": "San Francisco",
-        "state": "CA",
-        "phone": "123-123-1234",
-        "website": "https://www.themusicalhop.com",
-        "facebook_link": "https://www.facebook.com/TheMusicalHop",
-        "seeking_talent": True,
-        "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-        "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+
+    venue = Venue.query.get(venue_id)
+    genres = []
+    for genre in venue.genres:
+        genres.append(genre.id)
+    data = {
+        "id": venue.id,
+        "name": venue.name,
+        "genres": genres,
+        "address": venue.address,
+        "city": venue.city.name,
+        "state": venue.city.state.name,
+        "phone": venue.phone,
+        "website": venue.website,
+        "facebook_link": venue.facebook_link,
+        "seeking_talent": venue.seeking_talent,
+        "seeking_description": venue.seeking_description,
+        "image_link": venue.image_link
     }
+    # app.logger.debug(genres)
+    form = VenueForm(name=venue.name, genres=genres,
+                     phone=venue.phone, city=venue.city.name, state=venue.city.state.id, address=venue.address, facebook_link=venue.facebook_link)
     # TODO: populate form with values from venue with ID <venue_id>
-    return render_template('forms/edit_venue.html', form=form, venue=venue)
+    return render_template('forms/update_venue.html', form=form, venue=data)
 
 
 @ app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
+    error = False
+    venue_name = request.get_json()['name']
+    try:
+        app.logger.info(request.get_json())
+        body = {}
+        venue = Venue.query.get(venue_id)
+        venue.name = venue_name
+        city_name = request.get_json()['city']
+        state_id = request.get_json()['state']
+        genres = request.get_json()['genres']
+        city = City.query.filter(City.name == city_name).first()
+
+        if city == None:
+            city = City(name=city_name)
+            city.state_id = state_id
+            db.session.add(city)
+            db.session.commit()
+
+        venue.city_id = city.id
+        venue.phone = request.get_json()['phone']
+        venue.facebook_link = request.get_json()['facebook_link']
+
+        for genre_id in genres:
+            genre = Genre.query.get(genre_id)
+            venue.genres.append(genre)
+        db.session.add(venue)
+        db.session.commit()
+        body['id'] = venue.id
+        body['name'] = venue.name
+
+    except:
+        print("Oops!", sys.exc_info(), "occured.")
+        error = True
+        db.session.rollback()
+
+    finally:
+        db.session.close()
+
+    if error:
+        flash('venue ' + venue_name + ' could not be listed.')
+        abort(400)
+    else:
+        flash('venue ' + venue_name + ' was successfully listed!')
+
+    return jsonify(body)
+    # venue_name = request.get_json()['name']
+    # app.logger.debug(venue_name)
     # TODO: take values from the form submitted, and update existing
     # venue record with ID <venue_id> using the new attributes
-    return redirect(url_for('show_venue', venue_id=venue_id))
+    # return redirect(url_for('show_venue', venue_id=venue_id))

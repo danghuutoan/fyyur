@@ -1,9 +1,12 @@
 from startup.app import app
 from models.city import City
 from models.artist import Artist
+from models.genre import Genre
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from datetime import datetime
-
+from forms import ArtistForm
+from startup.db import db
+import sys
 #  Artists
 #  ----------------------------------------------------------------
 
@@ -95,7 +98,7 @@ def edit_artist_submission(artist_id):
         body = {}
         artist = Artist.query.get(artist_id)
         if artist == None:
-            abort(404)
+            return abort(404)
         artist_name = request.get_json()['name']
         city_name = request.get_json()['city']
         state_id = request.get_json()['state']
@@ -107,10 +110,10 @@ def edit_artist_submission(artist_id):
         if city == None:
             city = City(name=city_name)
             city.state_id = state_id
-            db.session.add(city)
-            db.session.commit()
+            # db.session.add(city)
+            # db.session.commit()
 
-        artist.city_id = city.id
+        artist.city = city
         artist.phone = request.get_json()['phone']
         artist.facebook_link = request.get_json()['facebook_link']
 
@@ -118,22 +121,26 @@ def edit_artist_submission(artist_id):
         for genre_id in genres:
             genre = Genre.query.get(genre_id)
             artist.genres.append(genre)
+
         db.session.add(artist)
         db.session.commit()
+        app.logger.debug(artist)
         body['id'] = artist.id
         body['name'] = artist.name
     except:
         error = True
+        app.logger.debug(sys.exc_info())
         db.session.rollback()
 
     finally:
         db.session.close()
 
     if error:
-        flash('Artist ' + artist.name + ' could not be updated.')
+        flash('Artist ' + artist_name + ' could not be updated.')
+
         abort(400)
     else:
-        flash('Artist ' + artist.name + ' was successfully updated!')
+        flash('Artist ' + artist_name + ' was successfully updated!')
         return jsonify(body)
 
 

@@ -32,7 +32,7 @@
           <label for="genres">Facebook Link</label>
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id='facebook_link', autofocus = true) }}
         </div>
-      <input type="button" id='edit-artist-btn' onclick=handle_update({{artist.id}}) value="Edit Artist" class="btn btn-primary btn-lg btn-block">
+      <input type="submit" id='edit-artist-btn' value="Edit Artist" class="btn btn-primary btn-lg btn-block">
     </form>
   </div>
   <script type=text/javascript src="{{

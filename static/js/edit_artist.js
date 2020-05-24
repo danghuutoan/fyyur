@@ -3,7 +3,9 @@
 // 	alert("Hi!");
 // });
 
-handle_update = (artist_id) => {
+document.getElementById("edit-artist-form").onsubmit = (event) => {
+	event.preventDefault();
+	const artist_id = window.location.pathname.split("/")[2];
 	console.log(artist_id);
 	const genres = document.getElementById("genres");
 	let genres_list = [];
