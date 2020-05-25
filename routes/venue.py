@@ -2,6 +2,7 @@ from startup.app import app
 from models.city import City
 from models.venue import Venue
 from models.genre import Genre
+from models.show import Show
 from datetime import datetime
 from forms import VenueForm
 from startup.db import db
@@ -30,16 +31,26 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
+
+    search_term = "%{}%".format(request.form.get('search_term'))
+    venues = Venue.query.filter(Venue.name.ilike(search_term)).all()
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for Hop should return "The Musical Hop".
     # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
+    data = []
+    for venue in venues:
+        up_comming_shows = Show.query.filter(Show.venue_id == venue.id,
+                                             Show.start_time > datetime.now()).all()
+        app.logger.debug(up_comming_shows)
+        data.append({
+            "id": venue.id,
+            "name": venue.name,
+            "num_upcoming_show": len(up_comming_shows)
+        })
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
+        "count": len(data),
+        "data": data
     }
     return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
@@ -85,7 +96,6 @@ def show_venue(venue_id):
         "upcoming_shows": upcoming_shows,
         "upcoming_shows_count": len(upcoming_shows)
     }
-    # app.logger.info(data)
     return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -103,7 +113,6 @@ def create_venue_submission():
     error = False
     venue_name = request.get_json()['name']
     try:
-        # app.logger.info(request.get_json())
         body = {}
         venue = Venue(name=venue_name)
         city_name = request.get_json()['city']

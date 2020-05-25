@@ -1,6 +1,7 @@
 from startup.app import app
 from models.city import City
 from models.artist import Artist
+from models.show import Show
 from models.genre import Genre
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from datetime import datetime
@@ -23,14 +24,33 @@ def search_artists():
     # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
     # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
     # search for "band" should return "The Wild Sax Band".
+
+    search_term = "%{}%".format(request.form.get('search_term'))
+    artists = Artist.query.filter(Artist.name.ilike(search_term)).all()
+
+    data = []
+    for artist in artists:
+        up_comming_shows = Show.query.filter(Show.artist_id == artist.id,
+                                             Show.start_time > datetime.now()).all()
+        data.append({
+            "id": artist.id,
+            "name": artist.name,
+            "num_upcoming_show": len(up_comming_shows)
+        })
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
+        "count": len(data),
+        "data": data
     }
+
+    # response = {
+    #     "count": 1,
+    #     "data": [{
+    #         "id": 4,
+    #         "name": "Guns N Petals",
+    #         "num_upcoming_shows": 0,
+    #     }]
+    # }
     return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 
