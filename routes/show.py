@@ -1,7 +1,10 @@
 from startup.app import app
+from startup.db import db
 from models.show import Show
+from models.artist import Artist
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from datetime import datetime
+from forms import ShowForm
 
 
 @ app.route('/shows')
@@ -26,7 +29,9 @@ def shows():
 @ app.route('/shows/create')
 def create_shows():
     # renders form. do not touch.
-    form = ShowForm()
+    artists = db.session.query(Artist.id, Artist.name).distinct().all()
+    app.logger.debug(artists)
+    form = ShowForm(artist_id=artists)
     return render_template('forms/new_show.html', form=form)
 
 

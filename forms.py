@@ -2,7 +2,9 @@ from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
 from wtforms.validators import DataRequired, AnyOf, URL
-
+from models.artist import Artist
+from models.venue import Venue
+from startup.db import db
 states = [
     (1, 'AL'),
     (2, 'AK'),
@@ -59,12 +61,11 @@ states = [
 
 
 class ShowForm(FlaskForm):
-    artist_id = StringField(
-        'artist_id'
-    )
-    venue_id = StringField(
-        'venue_id'
-    )
+
+    artist_choices = db.session.query(Artist.id, Artist.name).distinct().all()
+    artist_id = SelectField('artist_id', choices=artist_choices)
+    venue_choices = db.session.query(Venue.id, Venue.name).distinct().all()
+    venue_id = SelectField('veneu_id', choices=venue_choices)
     start_time = DateTimeField(
         'start_time',
         validators=[DataRequired()],
