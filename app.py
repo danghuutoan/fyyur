@@ -8,10 +8,13 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from flask_moment import Moment
 
+from startup.db import db, migrate
+from startup.app import app
+
 import logging
 from logging import Formatter, FileHandler
-from flask_wtf import Form
-from forms import *
+# from flask_wtf import Form
+# from forms import *
 
 import sys
 # models
@@ -29,9 +32,7 @@ from routes.show import *
 from routes.error import *
 from routes.home import *
 
-from startup.db import db, migrate
-from startup.app import app
-
+from forms import *
 
 moment = Moment(app)
 

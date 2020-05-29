@@ -1,6 +1,6 @@
-{% extends 'layouts/main.html' %}
-{% block title %}Fyyur | Artists{% endblock %}
+{% extends 'layouts/main.html' %} {% block title %}Fyyur | Artists{% endblock %}
 {% block content %}
+
 <ul class="items">
 	{% for artist in artists %}
 	<li>
@@ -10,7 +10,21 @@
 				<h5>{{ artist.name }}</h5>
 			</div>
 		</a>
+
+		<button
+			class="delete-button"
+			onclick="handleArtistDelele({{artist.id}})"
+			data-id="{{ artist.id }}"
+		>
+			<i class="fas fa-trash-alt"></i>
+		</button>
+		<button class="delete-button">
+			<a href="/artists/{{artist.id}}/edit">
+				<i class="fas fa-edit"></i>
+			</a>
+		</button>
 	</li>
 	{% endfor %}
 </ul>
+<script type="text/javascript" src="/static/js/artist.js" defer></script>
 {% endblock %}

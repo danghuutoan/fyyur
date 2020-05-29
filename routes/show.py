@@ -2,6 +2,7 @@ from startup.app import app
 from startup.db import db
 from models.show import Show
 from models.artist import Artist
+from models.venue import Venue
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify, abort
 from datetime import datetime
 from forms import ShowForm
@@ -30,7 +31,10 @@ def shows():
 @ app.route('/shows/create')
 def create_shows():
     # renders form. do not touch.
-    form = ShowForm()
+    artist_choices = db.session.query(
+        Artist.id, Artist.name).distinct().all()
+    venue_choices = db.session.query(Venue.id, Venue.name).distinct().all()
+    form = ShowForm(artist_choices, venue_choices)
     return render_template('forms/new_show.html', form=form)
 
 

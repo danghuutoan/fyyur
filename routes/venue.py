@@ -105,7 +105,7 @@ def show_venue(venue_id):
 @app.route('/venues/create', methods=['GET'])
 def create_venue_form():
     form = VenueForm()
-    return render_template('forms/update_venue.html', form=form)
+    return render_template('forms/update_venue.html', form=form, action="Create Venue")
 
 
 @app.route('/venues/create', methods=['POST'])
@@ -123,10 +123,8 @@ def create_venue_submission():
         if city == None:
             city = City(name=city_name)
             city.state_id = state_id
-            db.session.add(city)
-            db.session.commit()
 
-        venue.city_id = city.id
+        venue.city = city
         venue.phone = request.get_json()['phone']
         venue.facebook_link = request.get_json()['facebook_link']
 
@@ -157,12 +155,32 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-    # TODO: Complete this endpoint for taking a venue_id, and using
-    # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+    app.logger.debug(f'delete {venue_id}')
+    error = False
+    body = {}
+    try:
+        # TODO: Complete this endpoint for taking a venue_id, and using
+        # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
 
-    # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
-    # clicking that button delete it from the db then redirect the user to the homepage
-    return None
+        # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
+        # clicking that button delete it from the db then redirect the user to the homepage
+        venue = Venue.query.get(venue_id)
+        db.session.delete(venue)
+        db.session.commit()
+        body['id'] = venue.id
+        body['name'] = venue.name
+    except:
+        db.session.rollback()
+        error = True
+    finally:
+        db.session.close()
+
+    if error:
+        flash('Venue ' + venue.name + ' could not be deleted.')
+        abort(400)
+    else:
+        flash('Artist ' + venue.name + ' was successfully deleted.')
+        return jsonify(body)
 
 
 @ app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -190,7 +208,7 @@ def edit_venue(venue_id):
     form = VenueForm(name=venue.name, genres=genres,
                      phone=venue.phone, city=venue.city.name, state=venue.city.state.id, address=venue.address, facebook_link=venue.facebook_link)
     # TODO: populate form with values from venue with ID <venue_id>
-    return render_template('forms/update_venue.html', form=form, venue=data)
+    return render_template('forms/update_venue.html', form=form, venue=data, action="Edit")
 
 
 @ app.route('/venues/<int:venue_id>/edit', methods=['POST'])
